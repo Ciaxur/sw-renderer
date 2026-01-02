@@ -1,3 +1,4 @@
 .cache
 app
 *\.o
+compile_commands.json
