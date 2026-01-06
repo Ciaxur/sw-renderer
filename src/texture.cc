@@ -1,5 +1,8 @@
 #include "texture.h"
+#include "compute.h"
 #include <cmath>
+#include <cstdint>
+#include <fmt/base.h>
 
 void Texture2D::generate_gradient() {
   float center_x = (float)width / 2.0f;
@@ -47,4 +50,44 @@ void Texture2D::update() {
   glBindTexture(GL_TEXTURE_2D, id);
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
   glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+GLuint Texture2D::get_texture_id() { return id; }
+
+void Texture2D::clear(RGBA color) {
+  for (auto &pixel : pixels) {
+    pixel.set(color.r, color.g, color.b, color.a);
+  }
+}
+
+void Texture2D::draw_line(size_t x0, size_t y0, size_t x1, size_t y1) {
+  /* Place dots */
+  at(x0, y0).set(255, 255, 255, 255);
+  at(x1, y1).set(255, 255, 255, 255);
+
+  /* Slope */
+  int64_t dx = x1 - x0;
+  int64_t dy = y1 - y0;
+
+  int64_t x_direction = dx > 0 ? 1 : -1;
+  int64_t y_direction = dy > 0 ? 1 : -1;
+
+  if (dy == 0) { y_direction = 0; }
+  if (dx == 0) { x_direction = 0; }
+
+  /* Walk it */
+  int64_t xf = x0;
+  int64_t yf = y0;
+
+  while (xf != x1 || yf != y1) {
+    at(xf, yf).set(255, 255, 255, 255);
+    yf += y_direction;
+    xf += x_direction;
+  }
+}
+
+void Texture2D::draw_dot(int64_t x, int64_t y, RGBA color) {
+  if (compute::boundary_check({static_cast<float>(x), static_cast<float>(y)}, width, height)) {
+    at(x, y).set(color);
+  }
 }

@@ -1,28 +1,46 @@
 #include "renderer.h"
+#include "asset.h"
+#include "compute.h"
 #include <fmt/base.h>
 
 Renderer::Renderer(double width, double height) : width(width), height(height), main_tex(width, height) {}
 Renderer::~Renderer() {}
 
+void Renderer::apply_asset(const Asset &asset, Texture2D &tex) {
+  for (const vec2 &v : asset.data()) {
+    if (compute::boundary_check(v, width, height)) {
+      tex.draw_dot(v.x, v.y);
+    }
+  }
+}
 
 void Renderer::setup() {
   main_tex.generate_gradient();
+
+  assets.emplace_back(geometry::create_rectangle(10, 10, 200, 20));
+  assets.emplace_back(geometry::create_circle(width/2, height/2, 20));
 }
 
 void Renderer::update_physics(double dt) {}
 
 void Renderer::update() {
-  // TEST:
-  fmt::println("[dt={:.2f}] j={}", dt, j);
-  for (size_t i = 0; i < main_tex.width; i++) {
-    if (j > 0) {
-      main_tex.at(i, j - 1).set(0, 0, 0, 255);
-    }
-    main_tex.at(i, j).set(255, 0, 0, 255);
+  main_tex.clear({0, 0, 0, 255});
+  for (const Asset &asset : assets) {
+    apply_asset(asset, main_tex);
+    main_tex.draw_dot(asset.get_axis().x, asset.get_axis().y, {255, 0, 0, 255});
   }
-  j = (j + 1) % main_tex.height;
-
   main_tex.update();
+
+  // TEST:
+  assets[0].translate({1, 1});
+  assets[1].rotate(0.01);
+
+  static size_t _si = 0;
+  const float _dxy = 1.013;
+  if (_si < 200) {
+    assets[1].scale({_dxy, _dxy});
+    _si++;
+  }
 }
 
 void Renderer::draw() {
@@ -35,7 +53,7 @@ void Renderer::draw() {
   glTranslatef(0.f, 0.f, 0.f);
   glScalef(1.f, 1.f, 0.f);
 
-  glBindTexture(GL_TEXTURE_2D, main_tex.id);
+  glBindTexture(GL_TEXTURE_2D, main_tex.get_texture_id());
   glColor3f(1.0f, 1.0f, 1.0f);
   glEnable(GL_TEXTURE_2D);
 
