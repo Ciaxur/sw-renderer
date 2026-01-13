@@ -5,3 +5,9 @@ struct vec2 {
   float y;
 };
 
+struct vec3 {
+  float x;
+  float y;
+  float z;
+};
+

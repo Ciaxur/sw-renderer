@@ -1,4 +1,5 @@
 #pragma once
+#include "vec.h"
 #include <GL/gl.h>
 #include <cstddef>
 #include <vector>
@@ -76,4 +77,6 @@ public:
    * @param color color to fill dot with
    */
   void draw_dot(int64_t x, int64_t y, RGBA color = { 255, 255, 255, 255 });
+
+  void apply_projection(const float rot_deg, const vec3 &v_tran);
 };

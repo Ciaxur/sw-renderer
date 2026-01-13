@@ -1,6 +1,5 @@
 #include "asset.h"
 #include "compute.h"
-#include <cmath>
 
 Asset::Asset() : points({}) {}
 Asset::~Asset() {}
@@ -14,18 +13,8 @@ const std::vector<vec2> &Asset::data() const { return points; }
 const vec2 &Asset::get_axis() const { return axis; }
 
 void Asset::rotate(const float deg) {
-  const float s = std::sin(deg);
-  const float c = std::cos(deg);
-
-  for (vec2& p : points) {
-    const float x = p.x - axis.x;
-    const float y = p.y - axis.y;
-
-    const float dx = axis.x + (x * c) - (y * s);
-    const float dy = axis.y + (y * c) + (x * s);
-
-    p.x = dx;
-    p.y = dy;
+  for (vec2 &p : points) {
+    p = compute::rotate_vec2(axis, p, deg);
   }
 }
 

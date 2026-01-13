@@ -2,6 +2,7 @@
 
 #include "asset.h"
 #include "texture.h"
+#include "vec.h"
 #include <cstddef>
 
 class Renderer {
@@ -10,6 +11,10 @@ private:
   double width;
   double height;
   std::vector<Asset> assets;
+
+  /* Scene projection state */
+  float v_rot;
+  vec3 v_translate;
 
   void apply_asset(const Asset &asset, Texture2D &tex);
 

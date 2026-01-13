@@ -1,9 +1,12 @@
 #include "renderer.h"
 #include "asset.h"
 #include "compute.h"
+#include <cmath>
 #include <fmt/base.h>
 
-Renderer::Renderer(double width, double height) : width(width), height(height), main_tex(width, height) {}
+Renderer::Renderer(double width, double height)
+    : width(width), height(height), main_tex(width, height), v_rot(0.f),
+      v_translate({.x = 0.f, .y = 0.f, .z = 0.f}) {}
 Renderer::~Renderer() {}
 
 void Renderer::apply_asset(const Asset &asset, Texture2D &tex) {
@@ -24,15 +27,18 @@ void Renderer::setup() {
 void Renderer::update_physics(double dt) {}
 
 void Renderer::update() {
+  /* Draw assets into scene */
   main_tex.clear({0, 0, 0, 255});
   for (const Asset &asset : assets) {
     apply_asset(asset, main_tex);
     main_tex.draw_dot(asset.get_axis().x, asset.get_axis().y, {255, 0, 0, 255});
   }
-  main_tex.update();
 
-  // TEST:
-  assets[0].translate({1, 1});
+  /* Update the scene's projection */
+  main_tex.apply_projection(v_rot, v_translate);
+  v_rot += 0.01f;
+
+  // TEST: update asset translations
   assets[1].rotate(0.01);
 
   static size_t _si = 0;
@@ -41,9 +47,19 @@ void Renderer::update() {
     assets[1].scale({_dxy, _dxy});
     _si++;
   }
+
+  static size_t tick = 0;
+  v_translate.z = 1.f + ( (std::sin(tick / 100.f) + 1.f) / 2.f );
+  v_translate.y = std::sin(tick / 10.f) * 10.f;
+  v_translate.x = std::cos(tick / 10.f) * 10.f;
+  tick++;
 }
 
 void Renderer::draw() {
+  /* Prepare texture (scene) to be drawn */
+  main_tex.update();
+
+  /* Pass "software rendered" scene to be drawn by OpenGL */
   glClearColor(255.f, 255.f, 255.f, 255.f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
